@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Python Lab</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  background: #111;
+  color: #ddd;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #222;
+  flex-shrink: 0;
+  color: #555;
+}
+header strong { color: #888; }
+#py-load-status { margin-left: auto; font-size: 11px; }
+
+/* ── MAIN ── */
+main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── CHAT ── */
+#chat-col {
+  width: 45%;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #222;
+}
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.msg { max-width: 100%; line-height: 1.5; }
+.msg.user {
+  align-self: flex-end;
+  background: #1c2333;
+  border: 1px solid #2a3547;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  white-space: pre-wrap;
+}
+.msg.assistant { align-self: flex-start; color: #ccc; }
+.msg pre {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 10px;
+  overflow-x: auto;
+  margin: 6px 0;
+  position: relative;
+}
+.msg code { font-family: inherit; font-size: 12px; }
+.msg p { margin: 4px 0; }
+.msg strong { color: #eee; }
+.send-to-editor {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #333;
+  color: #aaa;
+  border: 1px solid #444;
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.send-to-editor:hover { background: #444; color: #eee; }
+
+#chat-input-wrap {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #222;
+  flex-shrink: 0;
+}
+#chat-input {
+  flex: 1;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  color: #ddd;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  line-height: 1.4;
+}
+#chat-input:focus { border-color: #3a3a3a; }
+#chat-send {
+  background: #1e3a5f;
+  color: #7eb8f7;
+  border: 1px solid #2a5080;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  align-self: flex-end;
+}
+#chat-send:hover { background: #254875; }
+
+/* ── PYTHON ── */
+#py-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#py-editor-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+#py-editor {
+  width: 100%;
+  height: 100%;
+  background: #0d0d0d;
+  color: #ddd;
+  border: none;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  line-height: 1.6;
+  tab-size: 4;
+}
+#py-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+  flex-shrink: 0;
+}
+#py-run {
+  background: #1a3d1a;
+  color: #6fcf6f;
+  border: 1px solid #2a5a2a;
+  padding: 4px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+#py-run:hover:not(:disabled) { background: #1f4a1f; }
+#py-run:disabled { opacity: 0.4; cursor: default; }
+#py-clear {
+  background: #1a1a1a;
+  color: #888;
+  border: 1px solid #2a2a2a;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+#py-clear:hover { color: #aaa; }
+#py-status { color: #555; font-size: 11px; margin-left: auto; }
+#py-output {
+  height: 220px;
+  background: #0a0a0a;
+  padding: 12px 14px;
+  overflow-y: auto;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  flex-shrink: 0;
+  border-top: 1px solid #1a1a1a;
+}
+.out-stdout { color: #ccc; }
+.out-stderr { color: #f87171; }
+.out-result { color: #60a5fa; }
+.out-info   { color: #555; font-style: italic; }
+</style>
+</head>
+<body>
+
+<header>
+  <strong>python lab</strong>
+  <span id="py-load-status">loading pyodide…</span>
+</header>
+
+<main>
+  <!-- CHAT -->
+  <div id="chat-col">
+    <div id="chat-messages"></div>
+    <div id="chat-input-wrap">
+      <textarea id="chat-input" rows="3" placeholder="Ask anything… Enter to send, Shift+Enter for newline"></textarea>
+      <button id="chat-send" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+
+  <!-- PYTHON -->
+  <div id="py-col">
+    <div id="py-editor-wrap">
+      <textarea id="py-editor" spellcheck="false" placeholder="# Python runs here (numpy + pandas pre-loaded)&#10;import numpy as np&#10;import pandas as pd"></textarea>
+    </div>
+    <div id="py-toolbar">
+      <button id="py-run" onclick="runPy()" disabled>Run  ▶</button>
+      <button id="py-clear" onclick="clearOutput()">Clear</button>
+      <span id="py-status"></span>
+    </div>
+    <div id="py-output"><span class="out-info">output appears here…</span></div>
+  </div>
+</main>
+
+<script>
+// ── PYODIDE ──────────────────────────────────────────────────────────
+let pyodide = null;
+
+(async () => {
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+  document.head.appendChild(s);
+  s.onload = async () => {
+    setStatus('loading pyodide…');
+    pyodide = await loadPyodide();
+    pyodide.setStdout({ batched: t => appendOut(t, 'stdout') });
+    pyodide.setStderr({ batched: t => appendOut(t, 'stderr') });
+    setStatus('loading numpy + pandas…');
+    await pyodide.loadPackage(['numpy', 'pandas']);
+    document.getElementById('py-run').disabled = false;
+    document.getElementById('py-load-status').textContent = 'ready';
+    setStatus('');
+  };
+})();
+
+async function runPy() {
+  if (!pyodide) return;
+  const code = document.getElementById('py-editor').value;
+  if (!code.trim()) return;
+  const btn = document.getElementById('py-run');
+  btn.disabled = true;
+  setStatus('running…');
+  try {
+    const result = await pyodide.runPythonAsync(code);
+    if (result !== undefined && result !== null) appendOut(String(result), 'result');
+  } catch(e) {
+    appendOut(e.message, 'stderr');
+  } finally {
+    btn.disabled = false;
+    setStatus('');
+  }
+}
+
+function appendOut(text, type) {
+  const out = document.getElementById('py-output');
+  const span = document.createElement('span');
+  span.className = 'out-' + type;
+  span.textContent = text.endsWith('\n') ? text : text + '\n';
+  out.appendChild(span);
+  out.scrollTop = out.scrollHeight;
+}
+
+function clearOutput() {
+  document.getElementById('py-output').innerHTML = '';
+}
+
+function setStatus(t) {
+  document.getElementById('py-status').textContent = t;
+}
+
+// Tab key in editor inserts spaces
+document.getElementById('py-editor').addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const el = e.target;
+    const s = el.selectionStart;
+    el.value = el.value.slice(0, s) + '    ' + el.value.slice(el.selectionEnd);
+    el.selectionStart = el.selectionEnd = s + 4;
+  }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); runPy(); }
+});
+
+// ── CHAT ─────────────────────────────────────────────────────────────
+const history = [];
+
+const SYSTEM = `You are a concise Python and data science tutor. The user is learning numpy, pandas, and eventually ML from scratch.
+
+When giving problems, format them clearly with context. When reviewing code, be direct.
+Format code in fenced \`\`\`python blocks. Keep explanations tight.`;
+
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+
+async function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+
+  const div = addMsg('assistant', '');
+  let full = '';
+
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        stream: true,
+        system: SYSTEM,
+        messages: history,
+      }),
+    });
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') continue;
+        try {
+          const j = JSON.parse(raw);
+          full += j.choices?.[0]?.delta?.content || '';
+          div.innerHTML = renderMd(full);
+        } catch {}
+      }
+    }
+    history.push({ role: 'assistant', content: full });
+  } catch(e) {
+    div.textContent = 'Error: ' + e.message;
+  }
+
+  document.getElementById('chat-messages').scrollTop = 9999;
+}
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = text ? renderMd(text) : '';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function renderMd(text) {
+  // fenced code blocks — add "→ editor" button
+  text = text.replace(/```(?:\w*)\n([\s\S]*?)```/g, (_, code) => {
+    const encoded = encodeURIComponent(code.trim());
+    return `<pre><button class="send-to-editor" onclick="toEditor(decodeURIComponent('${encoded}'))">→ editor</button><code>${esc(code.trim())}</code></pre>`;
+  });
+  // inline code
+  text = text.replace(/`([^`\n]+)`/g, (_, c) => `<code>${esc(c)}</code>`);
+  // bold
+  text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // newlines
+  text = text.replace(/\n/g, '<br>');
+  return text;
+}
+
+function toEditor(code) {
+  document.getElementById('py-editor').value = code;
+  document.getElementById('py-editor').focus();
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
