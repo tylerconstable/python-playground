@@ -381,8 +381,9 @@ function addMsg(role, text) {
 function renderMd(text) {
   // fenced code blocks — add "→ editor" button
   text = text.replace(/```(?:\w*)\n([\s\S]*?)```/g, (_, code) => {
-    const encoded = encodeURIComponent(code.trim());
-    return `<pre><button class="send-to-editor" onclick="toEditor(decodeURIComponent('${encoded}'))">→ editor</button><code>${esc(code.trim())}</code></pre>`;
+    const trimmed = code.trim();
+    const encoded = btoa(unescape(encodeURIComponent(trimmed)));
+    return `<pre><button class="send-to-editor" data-code="${encoded}" onclick="toEditor(this)">→ editor</button><code>${esc(trimmed)}</code></pre>`;
   });
   // inline code
   text = text.replace(/`([^`\n]+)`/g, (_, c) => `<code>${esc(c)}</code>`);
@@ -393,7 +394,8 @@ function renderMd(text) {
   return text;
 }
 
-function toEditor(code) {
+function toEditor(btn) {
+  const code = decodeURIComponent(escape(atob(btn.dataset.code)));
   document.getElementById('py-editor').value = code;
   document.getElementById('py-editor').focus();
 }
