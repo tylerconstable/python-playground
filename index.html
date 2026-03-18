@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Python Lab</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -202,6 +204,18 @@ main {
 .out-stderr { color: #dc2626; }
 .out-result { color: #2563eb; }
 .out-info   { color: #aaa; font-style: italic; }
+/* CodeMirror fills the editor panel */
+.CodeMirror {
+  height: 100%;
+  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  border: none;
+  background: #fafafa;
+}
+.CodeMirror-scroll { padding: 4px 0; }
+/* highlight.js in chat */
+.msg pre code.hljs { background: none; padding: 0; font-size: 12px; }
 </style>
 </head>
 <body>
@@ -235,7 +249,24 @@ main {
   </div>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
+// ── CODEMIRROR EDITOR ────────────────────────────────────────────────
+const editor = CodeMirror.fromTextArea(document.getElementById('py-editor'), {
+  mode: 'python',
+  lineNumbers: true,
+  indentUnit: 4,
+  tabSize: 4,
+  indentWithTabs: false,
+  extraKeys: {
+    'Tab': cm => cm.replaceSelection('    '),
+    'Ctrl-Enter': () => runPy(),
+    'Cmd-Enter':  () => runPy(),
+  },
+});
+
 // ── PYODIDE ──────────────────────────────────────────────────────────
 let pyodide = null;
 
@@ -258,7 +289,7 @@ let pyodide = null;
 
 async function runPy() {
   if (!pyodide) return;
-  const code = document.getElementById('py-editor').value;
+  const code = editor.getValue();
   if (!code.trim()) return;
   const btn = document.getElementById('py-run');
   btn.disabled = true;
@@ -291,17 +322,6 @@ function setStatus(t) {
   document.getElementById('py-status').textContent = t;
 }
 
-// Tab key in editor inserts spaces
-document.getElementById('py-editor').addEventListener('keydown', e => {
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    const el = e.target;
-    const s = el.selectionStart;
-    el.value = el.value.slice(0, s) + '    ' + el.value.slice(el.selectionEnd);
-    el.selectionStart = el.selectionEnd = s + 4;
-  }
-  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); runPy(); }
-});
 
 // ── CHAT ─────────────────────────────────────────────────────────────
 const history = [];
@@ -361,6 +381,7 @@ async function sendChat() {
       }
     }
     history.push({ role: 'assistant', content: full });
+    div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
   } catch(e) {
     div.textContent = 'Error: ' + e.message;
   }
@@ -396,8 +417,8 @@ function renderMd(text) {
 
 function toEditor(btn) {
   const code = decodeURIComponent(escape(atob(btn.dataset.code)));
-  document.getElementById('py-editor').value = code;
-  document.getElementById('py-editor').focus();
+  editor.setValue(code);
+  editor.focus();
 }
 
 function esc(s) {
