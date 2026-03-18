@@ -189,6 +189,30 @@ main { flex: 1; display: flex; overflow: hidden; }
 .out-result { color: #2563eb; }
 .out-info   { color: #aaa; font-style: italic; }
 
+/* ── PASTE PREVIEW ── */
+#paste-preview {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-top: 1px solid #e8e8e8;
+  background: #fafafa;
+  flex-shrink: 0;
+}
+#paste-preview.has-image { display: flex; }
+#paste-thumb {
+  height: 48px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  object-fit: cover;
+}
+#paste-remove {
+  background: none; border: none; color: #999;
+  cursor: pointer; font-size: 18px; line-height: 1; padding: 0;
+}
+#paste-remove:hover { color: #dc2626; }
+#paste-label { font-size: 11px; color: #999; }
+
 /* ── PROBLEMS PANEL ── */
 #problems-panel {
   position: fixed; inset: 0;
@@ -335,8 +359,13 @@ main { flex: 1; display: flex; overflow: hidden; }
   <!-- CHAT -->
   <div id="chat-col">
     <div id="chat-messages"></div>
+    <div id="paste-preview">
+      <img id="paste-thumb" src="" alt="">
+      <span id="paste-label">screenshot attached</span>
+      <button id="paste-remove" onclick="clearPaste()" title="Remove">×</button>
+    </div>
     <div id="chat-input-wrap">
-      <textarea id="chat-input" rows="3" placeholder="Ask anything… Enter to send, Shift+Enter for newline"></textarea>
+      <textarea id="chat-input" rows="3" placeholder="Ask anything… paste a screenshot with Cmd+V"></textarea>
       <button id="chat-send" onclick="sendChat()">Send</button>
     </div>
   </div>
@@ -600,6 +629,35 @@ function appendOut(text, type) {
 function clearOutput() { document.getElementById('py-output').innerHTML = ''; }
 function setStatus(t)  { document.getElementById('py-status').textContent = t; }
 
+// ── PASTE ────────────────────────────────────────────────────────────
+let _pastedImage = null; // { data: base64, media_type }
+
+document.addEventListener('paste', e => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (!item.type.startsWith('image/')) continue;
+    const file = item.getAsFile();
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const dataUrl = ev.target.result;
+      const [meta, data] = dataUrl.split(',');
+      const media_type = meta.match(/:(.*?);/)[1];
+      _pastedImage = { data, media_type };
+      document.getElementById('paste-thumb').src = dataUrl;
+      document.getElementById('paste-preview').classList.add('has-image');
+    };
+    reader.readAsDataURL(file);
+    break;
+  }
+});
+
+function clearPaste() {
+  _pastedImage = null;
+  document.getElementById('paste-preview').classList.remove('has-image');
+  document.getElementById('paste-thumb').src = '';
+}
+
 // ── CHAT ─────────────────────────────────────────────────────────────
 const history = [];
 let _lastAssistantMsg = '';
@@ -618,7 +676,14 @@ async function sendChat() {
   if (!text) return;
   inp.value = '';
   addMsg('user', text);
-  history.push({ role: 'user', content: text });
+  const userContent = _pastedImage
+    ? [
+        { type: 'image', source: { type: 'base64', media_type: _pastedImage.media_type, data: _pastedImage.data } },
+        { type: 'text', text },
+      ]
+    : text;
+  clearPaste();
+  history.push({ role: 'user', content: userContent });
   const div = addMsg('assistant', '');
   let full = '';
   try {
