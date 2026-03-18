@@ -23,21 +23,36 @@ body {
 header {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   padding: 8px 16px;
   border-bottom: 1px solid #e8e8e8;
   flex-shrink: 0;
   color: #999;
 }
 header strong { color: #444; }
-#py-load-status { margin-left: auto; font-size: 11px; }
+.hdr-btn {
+  background: #f4f4f4;
+  color: #444;
+  border: 1px solid #ddd;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+}
+.hdr-btn:hover { background: #e8e8e8; }
+#due-badge {
+  background: #111;
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 11px;
+  display: none;
+}
+#py-load-status { margin-left: auto; font-size: 11px; color: #bbb; }
 
 /* ── MAIN ── */
-main {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
+main { flex: 1; display: flex; overflow: hidden; }
 
 /* ── CHAT ── */
 #chat-col {
@@ -93,7 +108,6 @@ main {
   font-family: inherit;
 }
 .send-to-editor:hover { background: #f0f0f0; color: #111; }
-
 #chat-input-wrap {
   display: flex;
   gap: 8px;
@@ -129,35 +143,17 @@ main {
 #chat-send:hover { background: #333; }
 
 /* ── PYTHON ── */
-#py-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-#py-editor-wrap {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
+#py-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#py-editor-wrap { flex: 1; position: relative; overflow: hidden; }
 #py-editor {
-  width: 100%;
-  height: 100%;
-  background: #fafafa;
-  color: #111;
-  border: none;
-  padding: 14px;
-  font-family: inherit;
-  font-size: 13px;
-  resize: none;
-  outline: none;
-  line-height: 1.6;
-  tab-size: 4;
+  width: 100%; height: 100%;
+  background: #fafafa; color: #111;
+  border: none; padding: 14px;
+  font-family: inherit; font-size: 13px;
+  resize: none; outline: none; line-height: 1.6; tab-size: 4;
 }
 #py-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex; align-items: center; gap: 8px;
   padding: 6px 12px;
   border-top: 1px solid #e8e8e8;
   border-bottom: 1px solid #e8e8e8;
@@ -165,38 +161,26 @@ main {
   background: #f6f6f6;
 }
 #py-run {
-  background: #111;
-  color: #fff;
-  border: none;
-  padding: 4px 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
+  background: #111; color: #fff; border: none;
+  padding: 4px 14px; border-radius: 4px;
+  cursor: pointer; font-family: inherit; font-size: 13px;
 }
 #py-run:hover:not(:disabled) { background: #333; }
 #py-run:disabled { opacity: 0.35; cursor: default; }
-#py-clear {
-  background: #fff;
-  color: #666;
-  border: 1px solid #ddd;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
+.tb-btn {
+  background: #fff; color: #666; border: 1px solid #ddd;
+  padding: 4px 10px; border-radius: 4px;
+  cursor: pointer; font-family: inherit; font-size: 13px;
 }
-#py-clear:hover { color: #111; border-color: #aaa; }
+.tb-btn:hover { color: #111; border-color: #aaa; }
 #py-status { color: #aaa; font-size: 11px; margin-left: auto; }
 #py-output {
-  height: 220px;
+  height: 200px;
   background: #f6f6f6;
   padding: 12px 14px;
   overflow-y: auto;
-  font-family: inherit;
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: pre-wrap;
+  font-family: inherit; font-size: 12px;
+  line-height: 1.5; white-space: pre-wrap;
   flex-shrink: 0;
   border-top: 1px solid #e8e8e8;
 }
@@ -204,17 +188,137 @@ main {
 .out-stderr { color: #dc2626; }
 .out-result { color: #2563eb; }
 .out-info   { color: #aaa; font-style: italic; }
-/* CodeMirror fills the editor panel */
+
+/* ── PROBLEMS PANEL ── */
+#problems-panel {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: none;
+  z-index: 100;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+#problems-panel.open { display: flex; }
+#problems-inner {
+  background: #fff;
+  width: 380px;
+  height: 100%;
+  border-left: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+}
+#problems-hdr {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8e8e8;
+  flex-shrink: 0;
+}
+#problems-hdr strong { flex: 1; }
+#problems-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.prob-item {
+  padding: 10px 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.prob-item:hover { background: #f6f6f6; }
+.prob-title { flex: 1; font-size: 13px; color: #111; }
+.prob-due {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.prob-due.due-now { background: #fee2e2; color: #dc2626; }
+.prob-due.due-new { background: #dbeafe; color: #2563eb; }
+.prob-due.due-later { background: #f3f4f6; color: #999; }
+.prob-del {
+  background: none; border: none; color: #ccc;
+  cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px;
+}
+.prob-del:hover { color: #dc2626; }
+
+/* ── SAVE MODAL ── */
+#save-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+#save-modal.open { display: flex; }
+#save-inner {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#save-inner label { font-size: 12px; color: #666; }
+#save-title {
+  border: 1px solid #ddd; border-radius: 4px;
+  padding: 7px 10px; font-family: inherit; font-size: 13px;
+  outline: none; width: 100%;
+}
+#save-title:focus { border-color: #aaa; }
+#save-inner textarea {
+  border: 1px solid #ddd; border-radius: 4px;
+  padding: 7px 10px; font-family: inherit; font-size: 12px;
+  outline: none; width: 100%; resize: vertical; color: #444;
+}
+.save-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.save-btns button {
+  padding: 6px 14px; border-radius: 4px;
+  cursor: pointer; font-family: inherit; font-size: 13px;
+  border: 1px solid #ddd; background: #f4f4f4; color: #444;
+}
+.save-btns button.primary { background: #111; color: #fff; border-color: #111; }
+.save-btns button.primary:hover { background: #333; }
+
+/* ── REVIEW BAR ── */
+#review-bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #92400e;
+}
+#review-bar.open { display: flex; }
+#review-bar span { flex: 1; }
+.rate-btn {
+  padding: 4px 10px; border-radius: 4px;
+  cursor: pointer; font-family: inherit; font-size: 12px; border: none;
+}
+.rate-again { background: #fee2e2; color: #dc2626; }
+.rate-good  { background: #dcfce7; color: #16a34a; }
+.rate-easy  { background: #dbeafe; color: #2563eb; }
+
+/* CodeMirror */
 .CodeMirror {
   height: 100%;
   font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  border: none;
-  background: #fafafa;
+  font-size: 13px; line-height: 1.6;
+  border: none; background: #fafafa;
 }
 .CodeMirror-scroll { padding: 4px 0; }
-/* highlight.js in chat */
 .msg pre code.hljs { background: none; padding: 0; font-size: 12px; }
 </style>
 </head>
@@ -222,6 +326,8 @@ main {
 
 <header>
   <strong>python lab</strong>
+  <button class="hdr-btn" onclick="openSave()">Save problem</button>
+  <button class="hdr-btn" onclick="openProblems()">Problems <span id="due-badge"></span></button>
   <span id="py-load-status">loading pyodide…</span>
 </header>
 
@@ -238,28 +344,206 @@ main {
   <!-- PYTHON -->
   <div id="py-col">
     <div id="py-editor-wrap">
-      <textarea id="py-editor" spellcheck="false" placeholder="# Python runs here (numpy + pandas pre-loaded)&#10;import numpy as np&#10;import pandas as pd"></textarea>
+      <textarea id="py-editor" spellcheck="false"></textarea>
     </div>
     <div id="py-toolbar">
-      <button id="py-run" onclick="runPy()" disabled>Run  ▶</button>
-      <button id="py-clear" onclick="clearOutput()">Clear</button>
+      <button id="py-run" onclick="runPy()" disabled>Run ▶</button>
+      <button class="tb-btn" onclick="clearOutput()">Clear</button>
       <span id="py-status"></span>
+    </div>
+    <div id="review-bar">
+      <span id="review-label">How did it go?</span>
+      <button class="rate-btn rate-again" onclick="rateReview(0)">Again</button>
+      <button class="rate-btn rate-good"  onclick="rateReview(1)">Good</button>
+      <button class="rate-btn rate-easy"  onclick="rateReview(2)">Easy</button>
     </div>
     <div id="py-output"><span class="out-info">output appears here…</span></div>
   </div>
 </main>
 
+<!-- PROBLEMS PANEL -->
+<div id="problems-panel" onclick="e => { if(e.target===this) closeProblems(); }">
+  <div id="problems-inner">
+    <div id="problems-hdr">
+      <strong>Saved Problems</strong>
+      <button class="hdr-btn" onclick="closeProblems()">Close</button>
+    </div>
+    <div id="problems-list"></div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div id="save-modal">
+  <div id="save-inner">
+    <label>Problem title</label>
+    <input id="save-title" type="text" placeholder="e.g. numpy broadcasting">
+    <label>Description (optional — what concept does this cover?)</label>
+    <textarea id="save-desc" rows="3" placeholder="e.g. Practice using np.broadcast_to and understanding shape rules"></textarea>
+    <div class="save-btns">
+      <button onclick="closeSave()">Cancel</button>
+      <button class="primary" onclick="confirmSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
-// ── CODEMIRROR EDITOR ────────────────────────────────────────────────
+// ── SUPABASE ─────────────────────────────────────────────────────────
+const _supa = supabase.createClient(
+  'https://xjcrtucwycyllzqyylwd.supabase.co',
+  'sb_publishable_mFL0D4uzwnUdv7uZulHFug_kmWmpEpX'
+);
+
+// ── SRS ───────────────────────────────────────────────────────────────
+function todayDay() { return Math.floor(Date.now() / 86400000); }
+
+function srRate(p, rating) {
+  // rating: 0=Again, 1=Good, 2=Easy
+  const ease = p.sr_ease || 2.5;
+  const ivl   = p.sr_interval || 0;
+  if (p.sr_state === 'new' || p.sr_state === 'learning') {
+    if (rating === 0) { p.sr_state = 'learning'; p.sr_interval = 0; p.sr_due = todayDay(); }
+    if (rating === 1) { p.sr_state = 'review';   p.sr_interval = 1; p.sr_due = todayDay() + 1; }
+    if (rating === 2) { p.sr_state = 'review';   p.sr_interval = 4; p.sr_due = todayDay() + 4; }
+  } else {
+    if (rating === 0) { p.sr_state = 'learning'; p.sr_interval = 0; p.sr_due = todayDay(); p.sr_ease = Math.max(1.3, ease - 0.2); }
+    if (rating === 1) { p.sr_interval = Math.max(ivl + 1, Math.round(ivl * ease)); p.sr_due = todayDay() + p.sr_interval; }
+    if (rating === 2) { p.sr_interval = Math.max(ivl + 1, Math.round(ivl * ease * 1.3)); p.sr_ease = Math.min(2.5, ease + 0.15); p.sr_due = todayDay() + p.sr_interval; }
+  }
+  return p;
+}
+
+function dueLabel(p) {
+  const today = todayDay();
+  if (p.sr_state === 'new' || !p.sr_due)     return { text: 'new',     cls: 'due-new' };
+  if (p.sr_due <= today)                      return { text: 'due',     cls: 'due-now' };
+  const days = p.sr_due - today;
+  return { text: `in ${days}d`, cls: 'due-later' };
+}
+
+// ── PROBLEMS ─────────────────────────────────────────────────────────
+let _problems = [];
+let _reviewingId = null;
+
+async function loadProblems() {
+  const { data } = await _supa.from('problems').select('*').order('created_at');
+  _problems = data || [];
+  updateDueBadge();
+}
+
+function updateDueBadge() {
+  const today = todayDay();
+  const due = _problems.filter(p => !p.sr_due || p.sr_due <= today || p.sr_state === 'new').length;
+  const badge = document.getElementById('due-badge');
+  badge.textContent = due;
+  badge.style.display = due > 0 ? 'inline' : 'none';
+}
+
+function openProblems() {
+  renderProblemsList();
+  document.getElementById('problems-panel').classList.add('open');
+}
+
+function closeProblems() {
+  document.getElementById('problems-panel').classList.remove('open');
+}
+
+function renderProblemsList() {
+  const today = todayDay();
+  const sorted = [..._problems].sort((a, b) => {
+    const aDue = !a.sr_due || a.sr_due <= today ? 0 : a.sr_due;
+    const bDue = !b.sr_due || b.sr_due <= today ? 0 : b.sr_due;
+    return aDue - bDue;
+  });
+  const list = document.getElementById('problems-list');
+  if (!sorted.length) { list.innerHTML = '<div style="padding:16px;color:#999">No saved problems yet.</div>'; return; }
+  list.innerHTML = sorted.map(p => {
+    const { text, cls } = dueLabel(p);
+    return `<div class="prob-item" onclick="loadProblem('${p.id}')">
+      <span class="prob-title">${esc(p.title)}</span>
+      <span class="prob-due ${cls}">${text}</span>
+      <button class="prob-del" onclick="deleteProblem(event,'${p.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+
+async function loadProblem(id) {
+  const p = _problems.find(x => x.id === id);
+  if (!p) return;
+  closeProblems();
+  _reviewingId = id;
+  // Load code into editor
+  editor.setValue(p.code || '');
+  editor.focus();
+  // Post description into chat
+  if (p.description) {
+    const div = addMsg('assistant', p.description);
+    div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+  }
+  // Show review bar
+  document.getElementById('review-label').textContent = `"${p.title}" — how did it go?`;
+  document.getElementById('review-bar').classList.add('open');
+}
+
+async function rateReview(rating) {
+  if (!_reviewingId) return;
+  const p = _problems.find(x => x.id === _reviewingId);
+  if (!p) return;
+  srRate(p, rating);
+  await _supa.from('problems').update({
+    sr_state: p.sr_state, sr_step: p.sr_step,
+    sr_interval: p.sr_interval, sr_ease: p.sr_ease, sr_due: p.sr_due,
+  }).eq('id', p.id);
+  _reviewingId = null;
+  document.getElementById('review-bar').classList.remove('open');
+  updateDueBadge();
+}
+
+async function deleteProblem(e, id) {
+  e.stopPropagation();
+  if (!confirm('Delete this problem?')) return;
+  await _supa.from('problems').delete().eq('id', id);
+  _problems = _problems.filter(p => p.id !== id);
+  renderProblemsList();
+  updateDueBadge();
+}
+
+// ── SAVE ─────────────────────────────────────────────────────────────
+function openSave() {
+  document.getElementById('save-title').value = '';
+  document.getElementById('save-desc').value = _lastAssistantMsg.slice(0, 400);
+  document.getElementById('save-modal').classList.add('open');
+  setTimeout(() => document.getElementById('save-title').focus(), 50);
+}
+
+function closeSave() {
+  document.getElementById('save-modal').classList.remove('open');
+}
+
+async function confirmSave() {
+  const title = document.getElementById('save-title').value.trim();
+  if (!title) { document.getElementById('save-title').focus(); return; }
+  const desc  = document.getElementById('save-desc').value.trim();
+  const code  = editor.getValue();
+  const { data, error } = await _supa.from('problems').insert({
+    title, description: desc, code,
+    sr_state: 'new', sr_step: 0, sr_interval: 0, sr_ease: 2.5, sr_due: 0,
+  }).select().single();
+  if (!error) {
+    _problems.push(data);
+    updateDueBadge();
+  }
+  closeSave();
+}
+
+// ── CODEMIRROR ───────────────────────────────────────────────────────
 const editor = CodeMirror.fromTextArea(document.getElementById('py-editor'), {
   mode: 'python',
   lineNumbers: true,
-  indentUnit: 4,
-  tabSize: 4,
-  indentWithTabs: false,
+  indentUnit: 4, tabSize: 4, indentWithTabs: false,
   extraKeys: {
     'Tab': cm => cm.replaceSelection('    '),
     'Ctrl-Enter': () => runPy(),
@@ -269,7 +553,6 @@ const editor = CodeMirror.fromTextArea(document.getElementById('py-editor'), {
 
 // ── PYODIDE ──────────────────────────────────────────────────────────
 let pyodide = null;
-
 (async () => {
   const s = document.createElement('script');
   s.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
@@ -314,20 +597,14 @@ function appendOut(text, type) {
   out.scrollTop = out.scrollHeight;
 }
 
-function clearOutput() {
-  document.getElementById('py-output').innerHTML = '';
-}
-
-function setStatus(t) {
-  document.getElementById('py-status').textContent = t;
-}
-
+function clearOutput() { document.getElementById('py-output').innerHTML = ''; }
+function setStatus(t)  { document.getElementById('py-status').textContent = t; }
 
 // ── CHAT ─────────────────────────────────────────────────────────────
 const history = [];
+let _lastAssistantMsg = '';
 
 const SYSTEM = `You are a concise Python and data science tutor. The user is learning numpy, pandas, and eventually ML from scratch.
-
 When giving problems, format them clearly with context. When reviewing code, be direct.
 Format code in fenced \`\`\`python blocks. Keep explanations tight.`;
 
@@ -342,50 +619,38 @@ async function sendChat() {
   inp.value = '';
   addMsg('user', text);
   history.push({ role: 'user', content: text });
-
   const div = addMsg('assistant', '');
   let full = '';
-
   try {
     const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
-        stream: true,
-        system: SYSTEM,
-        messages: history,
+        model: 'claude-sonnet-4-6', max_tokens: 2048, stream: true,
+        system: SYSTEM, messages: history,
       }),
     });
-
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = '';
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buf += dec.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop();
+      const lines = buf.split('\n'); buf = lines.pop();
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
         const raw = line.slice(6).trim();
         if (raw === '[DONE]') continue;
-        try {
-          const j = JSON.parse(raw);
-          full += j.choices?.[0]?.delta?.content || '';
-          div.innerHTML = renderMd(full);
-        } catch {}
+        try { const j = JSON.parse(raw); full += j.choices?.[0]?.delta?.content || ''; div.innerHTML = renderMd(full); } catch {}
       }
     }
+    _lastAssistantMsg = full;
     history.push({ role: 'assistant', content: full });
     div.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
   } catch(e) {
     div.textContent = 'Error: ' + e.message;
   }
-
   document.getElementById('chat-messages').scrollTop = 9999;
 }
 
@@ -400,17 +665,13 @@ function addMsg(role, text) {
 }
 
 function renderMd(text) {
-  // fenced code blocks — add "→ editor" button
   text = text.replace(/```(?:\w*)\n([\s\S]*?)```/g, (_, code) => {
     const trimmed = code.trim();
     const encoded = btoa(unescape(encodeURIComponent(trimmed)));
     return `<pre><button class="send-to-editor" data-code="${encoded}" onclick="toEditor(this)">→ editor</button><code>${esc(trimmed)}</code></pre>`;
   });
-  // inline code
   text = text.replace(/`([^`\n]+)`/g, (_, c) => `<code>${esc(c)}</code>`);
-  // bold
   text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  // newlines
   text = text.replace(/\n/g, '<br>');
   return text;
 }
@@ -424,6 +685,14 @@ function toEditor(btn) {
 function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+// close problems panel on backdrop click
+document.getElementById('problems-panel').addEventListener('click', e => {
+  if (e.target === document.getElementById('problems-panel')) closeProblems();
+});
+
+// init
+loadProblems();
 </script>
 </body>
 </html>
